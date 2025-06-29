@@ -1,1 +1,1 @@
- ![ Alt text](./images/alx-airbnb-erd.png)
+ ![ Alt text](./ERD/alx-airbnb-erd.png)
