@@ -1,5 +1,5 @@
--- Creating the User table
-CREATE TABLE User (
+-- Creating the AppUser table
+CREATE TABLE Users (
     user_id UUID PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
@@ -20,8 +20,8 @@ CREATE TABLE Property (
     location VARCHAR(255) NOT NULL,
     pricepernight DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_property_host FOREIGN KEY (host_id) REFERENCES User(user_id) ON DELETE RESTRICT
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_property_host FOREIGN KEY (host_id) REFERENCES Users(user_id) ON DELETE RESTRICT
 );
 
 -- Creating the Booking table
@@ -34,8 +34,7 @@ CREATE TABLE Booking (
     status VARCHAR(10) NOT NULL CHECK (status IN ('pending', 'confirmed', 'canceled')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_booking_property FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_booking_user FOREIGN KEY (user_id) REFERENCES User(user_id) ON DELETE RESTRICT,
-    CONSTRAINT chk_dates CHECK (end_date > start_date)
+    CONSTRAINT fk_booking_user FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE RESTRICT
 );
 
 -- Creating the Payment table
@@ -57,7 +56,7 @@ CREATE TABLE Review (
     comment TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_review_property FOREIGN KEY (property_id) REFERENCES Property(property_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_review_user FOREIGN KEY (user_id) REFERENCES User(user_id) ON DELETE RESTRICT
+    CONSTRAINT fk_review_user FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE RESTRICT
 );
 
 -- Creating the Message table
@@ -67,13 +66,29 @@ CREATE TABLE Message (
     recipient_id UUID NOT NULL,
     message_body TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES User(user_id) ON DELETE RESTRICT,
-    CONSTRAINT fk_message_recipient FOREIGN KEY (recipient_id) REFERENCES User(user_id) ON DELETE RESTRICT
+    CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES Users(user_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_message_recipient FOREIGN KEY (recipient_id) REFERENCES Users(user_id) ON DELETE RESTRICT
 );
 
 -- Creating additional indexes for performance
-CREATE INDEX idx_user_email ON User(email);
+CREATE INDEX idx_user_email ON Users(email);
 CREATE INDEX idx_property_property_id ON Property(property_id);
 CREATE INDEX idx_booking_property_id ON Booking(property_id);
 CREATE INDEX idx_booking_booking_id ON Booking(booking_id);
 CREATE INDEX idx_payment_booking_id ON Payment(booking_id);
+
+-- Trigger for updated_at column in Property table
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER update_property_updated_at
+BEFORE UPDATE ON Property
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
+
