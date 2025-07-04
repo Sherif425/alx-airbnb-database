@@ -9,7 +9,8 @@ ON u.user_id=b.user_id;
 SELECT * 
 FROM property p
 LEFT JOIN review r
-ON p.property_id=r.property_id;
+ON p.property_id=r.property_id
+ORDER BY p.property_ID;
 
 -- Write a query using a FULL OUTER JOIN to retrieve all users and all bookings, even if the user has no booking or a booking is not linked to a user.
 SELECT *
