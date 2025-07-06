@@ -1,1 +1,1 @@
-
+SELECT    b.booking_id,    b.start_date,    b.end_date,    b.status,    b.created_at AS booking_created_at,    u.user_id,    u.first_name,    u.last_name,    u.email,    u.role,    p.property_id,    p.name AS property_name,    p.location,    p.pricepernight,    pay.payment_id,    pay.amount,    pay.payment_date,    pay.payment_methodFROM Booking bINNER JOIN Users u ON b.user_id = u.user_idINNER JOIN Property p ON b.property_id = p.property_idLEFT JOIN Payment pay ON b.booking_id = pay.booking_idORDER BY b.created_at DESC;
